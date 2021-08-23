@@ -265,6 +265,7 @@ int main (int argc, char* argv[]) {
    int onesec_check = 0;
    time_t last_pv_time = 0, pv_time;
    char fdName[FIFO_MAX][128];
+   char cfg_path[256] = "/etc/raspimjpeg";
 
    bcm_host_init();
    //
@@ -278,6 +279,10 @@ int main (int argc, char* argv[]) {
       else if(strcmp(argv[i], "-md") == 0) {
          cfg_val[c_motion_detection] = 1;
       }
+      else if(strcmp(argv[i], "--config") == 0 || strcmp(argv[i], "-c") == 0) {
+         i++;
+         snprintf(cfg_path, sizeof(cfg_path)-1, "%s", argv[i]);
+      }
    }
 
    //default base media path
@@ -286,7 +291,7 @@ int main (int argc, char* argv[]) {
    //
    // read configs and init
    //
-   read_config("/etc/raspimjpeg", 1);
+   read_config(cfg_path, 1);
    if (cfg_stru[c_user_config] != 0)
       read_config(cfg_stru[c_user_config], 0);
 
