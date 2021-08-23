@@ -1,21 +1,23 @@
 
 BCM_H_DIR?=/opt/vc/include/interface/
 
-CXX=g++
+CXX=gcc
 CXX_OPTS=-I$(BCM_H_DIR)vcos/ \
 	-I$(BCM_H_DIR)vcos/pthreads/ \
-	-I$(BCM_H_DIR)vmcs_host/linux
+	-I$(BCM_H_DIR)vmcs_host/linux \
+	-I$(BCM_H_DIR)../
+	
 
 CXXFLAGS=$(CXX_OPTS)
 
 CC=cc
 CFLAGS=
 CC_OPTS=-lmmal -lmmal_core -lmmal_util -lbcm_host 
-LDFLAGS=$(CC_OPTS)
+LDFLAGS=-L/opt/vc/lib $(CC_OPTS)
 
 INSTALL=install
 
-OBJ_RASPIMJPEG=RaspiMJPEG.o
+OBJ_RASPIMJPEG=RaspiMJPEG.o RaspiMCam.o RaspiMUtils.o RaspiMMotion.o RaspiMCmds.o
 
 %.o: %.c
 	$(CXX) -c $(CXXFLAGS) $(CXX_OPTS) $< -o $@
