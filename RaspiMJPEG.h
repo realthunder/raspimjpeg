@@ -155,7 +155,7 @@ void send_schedulecmd(char *cmd);
 void cam_set_annotationV3 (char *filename_temp, MMAL_BOOL_T enable);
 void cam_set_annotation();
 void thumb_create(char *from_filename, char source);
-void capt_img (void);
+void capt_img (long int id);
 void close_img (int callback);
 void start_video(unsigned char prepare_buf);
 void stop_video(unsigned char stop_buf);

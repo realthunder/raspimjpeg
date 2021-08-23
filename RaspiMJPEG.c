@@ -388,7 +388,7 @@ int main (int argc, char* argv[]) {
          tl_cnt++;
          if(tl_cnt >= cfg_val[c_tl_interval]) {
             if(i_capturing == 0) {
-               capt_img();
+               capt_img(0);
                tl_cnt = 0;
             }
          }

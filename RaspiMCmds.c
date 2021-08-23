@@ -105,7 +105,7 @@ void process_cmd(char *readbuf, int length) {
          }
          break;
       case im:
-         capt_img();
+         capt_img(par0);
          break;
       case tl:
          if(par0) {

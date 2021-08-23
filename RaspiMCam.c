@@ -399,7 +399,7 @@ void thumb_create(char *from_filename, char source) {
    }
 }
 
-void capt_img (void) {
+void capt_img (long int id) {
    if(cfg_val[c_raw_layer] == 1) {
 	  cam_set(c_raw_layer);
    }
@@ -411,6 +411,8 @@ void capt_img (void) {
          //Only first capture of a lapse sequence
          thumb_create(filename_image, 't');
       }
+   } else if (id) {
+      asprintf(&filename_image, "%s.%d.jpg", cfg_stru[c_preview_path], id);
    } else {
       makeFilename(&filename_image, cfg_stru[c_image_path]);
       thumb_create(filename_image, 'i');
