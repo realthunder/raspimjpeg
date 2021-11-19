@@ -41,7 +41,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * MMAL access routines and callbacks to support two images streams and one video
  */
 
+
+#include <linux/i2c.h>
+#include <linux/i2c-dev.h>
+#include <sys/ioctl.h>
+#include <arpa/inet.h>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/imgcodecs.hpp>
 #include "RaspiMJPEG.h"
+
+using namespace cv;
 
 static void camera_control_callback (MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer) {
 
@@ -397,6 +406,68 @@ void thumb_create(char *from_filename, char source) {
       }
       free(filename);
    }
+}
+
+int set_focus(int fd, int distance)
+{
+    short d = htons(distance << 4);
+    if (write(fd, &d, 2) < 0) {
+        error("Failed to write i2c device", 0);
+        return -1;
+    }
+    return 0;
+}
+
+void focus(int distance) {
+    int fd = open("/dev/i2c-0", O_RDWR);
+    if (fd < 0) {
+        error("Could not open i2c device", 0);
+        return;
+    }
+    if (ioctl(fd, I2C_SLAVE_FORCE, 0xc) < 0) {
+        error("Failed to set i2c address", 0);
+        close(fd);
+        return;
+    }
+    if (distance > 0) {
+        printLog("set focus %d\n", distance);
+        set_focus(fd, distance);
+        close(fd);
+        return;
+    }
+    double max_val;
+    int max_index = 10;
+    double max_value = 0.0;
+    double last_value = 0.0;
+    int dec_count = 0;
+    int focal_distance = 10;
+    for (;;) {
+        if (set_focus(fd, focal_distance) < 0) {
+            close(fd);
+            return;
+        }
+        Mat img = imread(cfg_stru[c_preview_path], IMREAD_GRAYSCALE);
+        Mat dst;
+        Laplacian(img, dst, CV_16S, 3, 1, 0, BORDER_DEFAULT);
+        double val = mean(dst)[0];
+        if (val > max_value) {
+            max_index = focal_distance;
+            max_value = val;
+        }
+        if (val < last_value)
+            dec_count += 1;
+        else
+            dec_count = 0;
+        if (dec_count > 6)
+            break;
+        last_value = val;
+        focal_distance += 15;
+        if (focal_distance > 1000)
+            break;
+    }
+    printLog("auto focus %d\n", max_index);
+    set_focus(fd, max_index);
+    close(fd);
 }
 
 void capt_img (long int id) {
