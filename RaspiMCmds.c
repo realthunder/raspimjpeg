@@ -65,7 +65,6 @@ void process_cmd(const char *readbuf, int length) {
 	   printLog("cmd not found: %s\n", cmd);
 	   return;
    }
-   printLog("cmd : %s\n", cmd);
    pipe_cmd = (pipe_cmd_type)((temp - pipe_cmds) / 3);
   
    if(length > 3) {
@@ -108,9 +107,13 @@ void process_cmd(const char *readbuf, int length) {
       case im:
          capt_img(par0);
          break;
-      case fc:
-         focus(par0);
+      case fc: {
+         long v = 0;
+         if (parcount > 1)
+            v = strtol(pars[1], NULL, 10);
+         focus(par0, v);
          break;
+      }
       case tl:
          if(par0) {
             timelapse = 1;

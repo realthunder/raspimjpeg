@@ -411,29 +411,49 @@ void thumb_create(char *from_filename, char source) {
 int set_focus(int fd, int distance)
 {
     short d = htons(distance << 4);
-    if (write(fd, &d, 2) < 0) {
+    if (write(fd, &d, 2) != 2) {
         error("Failed to write i2c device", 0);
         return -1;
     }
     return 0;
 }
 
-void focus(int distance) {
+int focus(int idx, int distance) {
+    printLog("focus %d, %d\n", idx, distance);
+    if (idx == 0) {
+        system("raspi-gpio set 28 ip");
+        system("raspi-gpio set 29 ip");
+        system("raspi-gpio set 0 a0");
+        system("raspi-gpio set 1 a0");
+    } else {
+        system("raspi-gpio set 0 ip");
+        system("raspi-gpio set 1 ip");
+        system("raspi-gpio set 28 a0");
+        system("raspi-gpio set 29 a0");
+    }
+
     int fd = open("/dev/i2c-0", O_RDWR);
     if (fd < 0) {
         error("Could not open i2c device", 0);
-        return;
+        return -1;
     }
     if (ioctl(fd, I2C_SLAVE_FORCE, 0xc) < 0) {
         error("Failed to set i2c address", 0);
         close(fd);
-        return;
+        return -1;
     }
-    if (distance > 0) {
-        printLog("set focus %d\n", distance);
-        set_focus(fd, distance);
+    if (distance != 0) {
+        short d;
+        if (read(fd, &d, 2) != 2) {
+            error("Failed to read i2c device", 0);
+            close(fd);
+            return -1;
+        }
+        distance += ntohs(d >> 4);
+        printLog("set manual focus %d\n", distance);
+        set_focus(fd, ntohs(d) + distance);
         close(fd);
-        return;
+        return distance;
     }
     double max_val;
     int max_index = 10;
@@ -444,7 +464,7 @@ void focus(int distance) {
     for (;;) {
         if (set_focus(fd, focal_distance) < 0) {
             close(fd);
-            return;
+            return -1;
         }
         Mat img = imread(cfg_stru[c_preview_path], IMREAD_GRAYSCALE);
         Mat dst;
@@ -465,9 +485,10 @@ void focus(int distance) {
         if (focal_distance > 1000)
             break;
     }
-    printLog("auto focus %d\n", max_index);
+    printLog("set auto focus %d\n", max_index);
     set_focus(fd, max_index);
     close(fd);
+    return max_index;
 }
 
 void capt_img (long int id) {
