@@ -43,9 +43,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //#define MOTION_INTERNAL
 #include "RaspiMJPEG.h"
 
-void process_cmd(char *readbuf, int length) {
-   typedef enum pipe_cmd_type{ca,im,tl,px,bo,tv,vi,an,as,at,ac,ab,sh,co,br,sa,is,vs,rl,ec,em,wb,ag,mm,ie,ce,ro,fl,ri,ss,qu,pv,bi,ru,md,sc,rs,bu,mn,mt,mi,ms,mb,me,mc,mx,mf,mz,vm,vp,wd,sy,um,cn,st,ls,qp} pipe_cmd_type;
-   char pipe_cmds[] = "ca,im,tl,px,bo,tv,vi,an,as,at,ac,ab,sh,co,br,sa,is,vs,rl,ec,em,wb,ag,mm,ie,ce,ro,fl,ri,ss,qu,pv,bi,ru,md,sc,rs,bu,mn,mt,mi,ms,mb,me,mc,mx,mf,mz,vm,vp,wd,sy,um,cn,st,ls,qp";
+void process_cmd(const char *readbuf, int length) {
+   typedef enum pipe_cmd_type{ca,im,tl,px,bo,tv,vi,an,as,at,ac,ab,sh,co,br,sa,is,vs,rl,ec,em,wb,ag,mm,ie,ce,ro,fl,ri,ss,qu,pv,bi,ru,md,sc,rs,bu,mn,mt,mi,ms,mb,me,mc,mx,mf,mz,vm,vp,wd,sy,um,cn,st,ls,qp, fc} pipe_cmd_type;
+   char pipe_cmds[] = "ca,im,tl,px,bo,tv,vi,an,as,at,ac,ab,sh,co,br,sa,is,vs,rl,ec,em,wb,ag,mm,ie,ce,ro,fl,ri,ss,qu,pv,bi,ru,md,sc,rs,bu,mn,mt,mi,ms,mb,me,mc,mx,mf,mz,vm,vp,wd,sy,um,cn,st,ls,qp,fc";
    pipe_cmd_type pipe_cmd;
    int parcount;
    char pars[128][10];
@@ -62,9 +62,10 @@ void process_cmd(char *readbuf, int length) {
    //find 2 letter command and translate into enum
    temp = strstr(pipe_cmds, cmd);
    if (temp == NULL) {
-	   printf("cmd not found in\n", cmd);
+	   printLog("cmd not found: %s\n", cmd);
 	   return;
    }
+   printLog("cmd : %s\n", cmd);
    pipe_cmd = (pipe_cmd_type)((temp - pipe_cmds) / 3);
   
    if(length > 3) {
@@ -106,6 +107,9 @@ void process_cmd(char *readbuf, int length) {
          break;
       case im:
          capt_img(par0);
+         break;
+      case fc:
+         focus(par0);
          break;
       case tl:
          if(par0) {
@@ -391,7 +395,7 @@ void process_cmd(char *readbuf, int length) {
    if (parstring != 0) free(parstring);
 }
 
-void exec_macro(char *macro, char *filename) {
+void exec_macro(const char *macro, const char *filename) {
    char *cmd, *macropath;
    char *s;
    char async;

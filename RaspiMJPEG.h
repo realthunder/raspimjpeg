@@ -89,7 +89,7 @@ extern int box_tail;
 extern char *cfg_strd[KEY_COUNT + 1];
 extern char *cfg_stru[KEY_COUNT + 1];
 extern long int cfg_val[KEY_COUNT + 1];
-extern char *cfg_key[];
+extern const char *cfg_key[];
 
 //motion detect data
 #define VECTOR_BUFFER_FRAMES 100
@@ -101,7 +101,7 @@ extern int vector_buffer_index;
 extern int mask_valid;
 extern int mask_disabled;
 extern unsigned char *vector_buffer;
-extern unsigned char *mask_buffer_mem, *mask_buffer;
+extern char *mask_buffer_mem, *mask_buffer;
 
 typedef enum cfgkey_type
    {
@@ -127,35 +127,36 @@ typedef enum cfgkey_type
    c_camera_num,c_stat_pass,c_user_annotate,c_count_format,c_minimise_frag,c_initial_quant,c_encode_qp,c_mmal_logfile,c_stop_pause,
    } cfgkey_type; 
 
-struct timespec currTime;
-struct tm *localTime;
+extern struct timespec currTime;
+extern struct tm *localTime;
 
 //Utils
-void mmalLog(char *msg, ...);
-void printLogEx(int logfile, char *msg, ...);
-void printLog(char *msg, ...);
+void mmalLog(const char *msg, ...);
+void printLogEx(int logfile, const char *msg, ...);
+void printLog(const char *msg, ...);
 void updateStatus();
 void error (const char *string, char fatal);
-int findNextCount(char* folder, char* source);
+int findNextCount(const char* folder, const char* source);
 char* trim(char*s);
-void makeName(char** name, char *template);
-void makeFilename(char** filename, char *template);
+void makeName(char** name, const char *templ);
+void makeFilename(char** filename, const char *templ);
 void createPath(char* filename, char* path);
 void createMediaPath(char* filename);
-int copy_file(char *from_filename, char *to_filename);
+int copy_file(const char *from_filename, const char *to_filename);
 time_t get_mtime(const char *path);
 void makeBoxname(char** boxname, char *filename);
 void makeScriptname(char** scriptname, char *filename);
 void add_box_file(char *boxfile);
 int check_box_files();
 void check_h264_toBox();
-void send_schedulecmd(char *cmd);
+void send_schedulecmd(const char *cmd);
 
 //Camera
 void cam_set_annotationV3 (char *filename_temp, MMAL_BOOL_T enable);
 void cam_set_annotation();
 void thumb_create(char *from_filename, char source);
 void capt_img (long int id);
+void focus(int distance);
 void close_img (int callback);
 void start_video(unsigned char prepare_buf);
 void stop_video(unsigned char stop_buf);
@@ -176,8 +177,8 @@ void start_all (int load_conf);
 void stop_all (void);
 
 //Cmds
-void process_cmd(char *readbuf, int length);
-void exec_macro(char *macro, char *filename);
+void process_cmd(const char *readbuf, int length);
+void exec_macro(const char *macro, const char *filename);
 
 //Motion
 void setup_motiondetect();
@@ -195,9 +196,9 @@ void mask_disable(int disable);
 //Main
 void set_counts();
 int getKey(char *key);
-void addValue(int keyI, char *value, int both);
-void addUserValue(int key, char *value);
-void saveUserConfig(char *cfilename);
-void read_config(char *cfilename, int type);
+void addValue(int keyI, const char *value, int both);
+void addUserValue(int key, const char *value);
+void saveUserConfig(const char *cfilename);
+void read_config(const char *cfilename, int type);
 void checkPipe(int pipe);
 void monitor();

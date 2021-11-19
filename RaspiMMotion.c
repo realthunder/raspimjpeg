@@ -51,7 +51,7 @@ int vector_buffer_index;
 int mask_valid = 0;
 int mask_disabled = 0;
 unsigned char *vector_buffer;
-unsigned char *mask_buffer_mem, *mask_buffer=0;
+char *mask_buffer_mem, *mask_buffer=0;
 
 // initialise variables, set up mask buffer from a pgm file if present
 void setup_motiondetect() {
@@ -82,7 +82,7 @@ void setup_motiondetect() {
       if (cfg_stru[c_motion_image] != 0) {
          mask_file = fopen(cfg_stru[c_motion_image], "r");
 		 if (mask_file != NULL) {
-			 mask_buffer_mem = (unsigned char *)malloc(mask_size + 256);
+			 mask_buffer_mem = (char*)malloc(mask_size + 256);
 			 mask_len = fread(mask_buffer_mem, sizeof *mask_buffer_mem, mask_size + 256, mask_file);
 			 fclose(mask_file);
 			 //Check for size and header

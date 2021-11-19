@@ -48,6 +48,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * SIGTERM.
  */
 
+#include <sys/wait.h>
 #include "RaspiMJPEG.h"
 
 MMAL_STATUS_T status;
@@ -75,8 +76,10 @@ int box_tail=0;
 char *cfg_strd[KEY_COUNT + 1];
 char *cfg_stru[KEY_COUNT + 1];
 long int cfg_val[KEY_COUNT + 1];
+struct timespec currTime;
+struct tm *localTime;
 
-char *cfg_key[] ={
+const char *cfg_key[] ={
    "annotation","anno_background",
    "anno3_custom_background_colour","anno3_custom_background_Y","anno3_custom_background_U","anno3_custom_background_V",
    "anno3_custom_text_colour","anno3_custom_text_Y","anno3_custom_text_U","anno3_custom_text_V","anno_text_size",
@@ -119,7 +122,7 @@ int getKey(char *key) {
    return KEY_COUNT;
 }
 
-void addValue(int keyI, char *value, int both){
+void addValue(int keyI, const char *value, int both){
    
    free(cfg_stru[keyI]);
    cfg_stru[keyI] = 0;
@@ -156,12 +159,12 @@ void addValue(int keyI, char *value, int both){
    }
 }
 
-void addUserValue(int key, char *value){
+void addUserValue(int key, const char *value){
    printLog("Change: %s = %s\n", cfg_key[key], value);
    addValue(key, value, 0);
 }
 
-void saveUserConfig(char *cfilename) {
+void saveUserConfig(const char *cfilename) {
    FILE *fp;
    int i;
    fp = fopen(cfilename, "w");
@@ -181,7 +184,7 @@ void saveUserConfig(char *cfilename) {
    }
 }
 
-void read_config(char *cfilename, int type) {
+void read_config(const char *cfilename, int type) {
    FILE *fp;
    int length;
    unsigned int len = 0;
@@ -447,7 +450,7 @@ int main (int argc, char* argv[]) {
       usleep(cfg_val[c_fifo_interval]);
    }
          
-   close(fd);
+   /* close(fd); */
    if(system("killall motion 2> /dev/null") == -1) error("Could not stop external motion", 1);
   
    printLog("SIGINT/SIGTERM received, stopping\n");

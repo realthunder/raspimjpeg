@@ -40,9 +40,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Usage information in README_RaspiMJPEG.md
  */
+#include <ctype.h>
 #include "RaspiMJPEG.h"
 
-void mmalLog(char *msg, ...) {
+void mmalLog(const char *msg, ...) {
 	if (cfg_stru[c_mmal_logfile]) {
 		va_list args;
 		va_start(args, msg);
@@ -63,7 +64,7 @@ void mmalLog(char *msg, ...) {
 	}
 }
 
-void printLogEx(int logfile, char *msg, ...) {
+void printLogEx(int logfile, const char *msg, ...) {
 	va_list args;
 	va_start(args, msg);
 	int nofile = 0;
@@ -92,7 +93,7 @@ void printLogEx(int logfile, char *msg, ...) {
 	va_end(args);
 }
 
-void printLog(char *msg, ...) {
+void printLog(const char *msg, ...) {
 	char *timestamp;
 	va_list args;
 	va_start(args, msg);
@@ -169,19 +170,19 @@ void updateStatus() {
 	}
 }
 
-void error (const char *string, char fatal) {
-	printLog("Error: %s\n", string);
+void error (const char *str, char fatal) {
+	printLog("Error: %s\n", str);
 	if (fatal == 0) {
-		exec_macro(cfg_stru[c_error_soft], string);
+		exec_macro(cfg_stru[c_error_soft], str);
 		return;
 	}
-	exec_macro(cfg_stru[c_error_hard], string);
+	exec_macro(cfg_stru[c_error_hard], str);
 	a_error = 1;
 	updateStatus();
 	exit(1);
 }
 
-int findNextCount(char* folder, char* source) {
+int findNextCount(const char* folder, const char* source) {
 	char* search;
 	char *s, *e;
 	unsigned int current_count, max_count = 0;
@@ -245,11 +246,11 @@ char* trim(char*s) {
 	return s;
 }
 
-void makeName(char** name, char *template) {
-	//Create name from template
+void makeName(char** name, const char *templ) {
+	//Create name from templ
 	const int max_subs = 24;
-	char spec[16] = "%YyMDhmsuvitfcka";
-	char *template1;
+	char spec[] = "%YyMDhmsuvitfcka";
+	char *templ1;
 	char p[512];
 	char *s, *f, *q;
 	int sp, si=0;
@@ -257,12 +258,12 @@ void makeName(char** name, char *template) {
 	FILE *fp;
 
 	memset(p, 0, sizeof p);
-	//get copy of template to work with
-	asprintf(&template1, "%s", template);
-	s = template1;
+	//get copy of templ to work with
+	asprintf(&templ1, "%s", templ);
+	s = templ1;
 	if(s != NULL) {
 		//start and end pointers
-		//successively search through template for % specifiers
+		//successively search through templ for % specifiers
 		while(*s && si < max_subs && strlen(p) < 255) {
 			if (*s == '%') {
 				s++;
@@ -309,18 +310,18 @@ void makeName(char** name, char *template) {
 		}
 	}
 	asprintf(name, "%s", p); 
-	free(template1);
+	free(templ1);
 }
 
-void makeFilename(char** filename, char* template) {
-	char *template1;
+void makeFilename(char** filename, const char* templ) {
+	char *templ1;
 	//allow paths to be relative to media path
-	if (*template != '/') {
-		asprintf(&template1,"%s/%s",cfg_stru[c_media_path], template);
-		makeName(filename, template1);
-		free(template1);
+	if (*templ != '/') {
+		asprintf(&templ1,"%s/%s",cfg_stru[c_media_path], templ);
+		makeName(filename, templ1);
+		free(templ1);
 	} else {
-		makeName(filename, template);
+		makeName(filename, templ);
 	}
 }
 
@@ -356,7 +357,7 @@ void createMediaPath(char *filename) {
 	createPath(filename, cfg_stru[c_media_path]);
 }
 
-int copy_file(char *from_filename, char *to_filename) {
+int copy_file(const char *from_filename, const char *to_filename) {
 	FILE  *fd_from, *fd_to;
 	char buffer[4096];
 	size_t bytes;
@@ -448,8 +449,10 @@ int check_box_files() {
 	if(v_boxing == 0 && get_box_count() > 0) {
 		//start new MP4Box operation
 		makeBoxname(&filename_temp, box_files[box_tail]);
-		if(cfg_stru[c_MP4Box_cmd] == 0) cfg_stru[c_MP4Box_cmd] = "(set -e;MP4Box -fps %i -add %s %s > /dev/null 2>&1;rm \"%s\";) &";
-		asprintf(&cmd_temp, cfg_stru[c_MP4Box_cmd], cfg_val[c_MP4Box_fps], filename_temp, box_files[box_tail], filename_temp);
+        const char *format = cfg_stru[c_MP4Box_cmd];
+		if(format == 0)
+            format = "(set -e;MP4Box -fps %i -add %s %s > /dev/null 2>&1;rm \"%s\";) &";
+		asprintf(&cmd_temp, format, cfg_val[c_MP4Box_fps], filename_temp, box_files[box_tail], filename_temp);
 		printLog("Start boxing %s to %s Queue pos %d\n", filename_temp, box_files[box_tail], box_tail);
 		system(cmd_temp);
 		v_boxing = 1;
@@ -496,7 +499,7 @@ void check_h264_toBox() {
 	}
 }   
 
-void send_schedulecmd(char *cmd) {
+void send_schedulecmd(const char *cmd) {
 	FILE *m_pipe;
 
 	printLog("send smd %s\n", cmd);
